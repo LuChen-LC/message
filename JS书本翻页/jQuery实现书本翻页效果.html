@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html>
+
+	<head>
+		<meta charset="UTF-8">
+		<script src="jquery-3.1.1.js"></script>
+		<title>jQuery实现书本翻页效果</title>
+		<style type="text/css">
+			* {
+				margin: 0;
+				padding: 0;
+			}
+			
+			html,
+			body {
+				height: 100%;
+			}
+			
+			body {
+				perspective: 1000px;
+			}
+			/*不能使用定宽居中 会导致后面的页面无法确定位置，重叠不起来*/
+			
+			.book {
+				width: 300px;
+				height: 300px;
+				/*margin: 300px auto;*/
+				position: absolute;
+				top: 40%;
+				left: 50%;
+				background-color: salmon;
+				transform: rotateX(30deg);
+				cursor: pointer;
+			}
+			
+			.preserve {
+				/*transform-style属性指定了，该元素的子元素是（看起来）位于三维空间内，
+			 * 还是在该元素所在的平面内被扁平化。*/
+				transform-style: preserve-3d;
+			}
+			
+			.outpage {
+				/*transform-origin 设置变换元素的基点位置*/
+				transform-origin: 0 50%;
+			}
+			/*设置宽高  位置  让所有的页面重叠*/
+			
+			.page {
+				width: 300px;
+				height: 300px;
+				/*margin: 300px auto;*/
+				position: absolute;
+				top: 0;
+				left: 0;
+				border: 1px solid salmon;
+				z-index: 4;
+			}
+			
+			.page1 .page {
+				background-color: salmon;
+			}
+			
+			.page2 .page,
+			.page3 .page,
+			.page4 .page {
+				background-color: wheat;
+			}
+			
+			.page div{
+				font-family: "楷体";
+				position: absolute;
+				width: 100%;
+				height: 100%;
+				top: 20%;
+				text-align: center;
+			}
+			.page .content{
+				width: 90%;
+				font-size: 14px;
+				line-height: 25px;
+				margin: 10px auto;
+				font-weight: bold;
+			}
+			
+			.page2 .page p{
+				font-size: 18px;
+				font-family: "楷体";
+				font-weight: bold;
+				position: absolute;
+				top: 40%;
+				left: 20%;
+			}
+			.page1 .page p {
+				color: white;
+				font-family: "楷体";
+				font-size: 20px;
+				position: absolute;
+				top: 70%;
+				left: 40%;
+			}
+			
+			#alert{
+				position: absolute;
+				top: 10%;
+				left: 10%;
+				z-index: 1000;
+				width: 400px;
+				height: 400px;
+				background-color: wheat;
+				display: none;
+			}
+			#alert h2 .close{
+				display: inline-block;
+				width: 30px;
+				height: 30px;
+				line-height: 30px;
+				position: absolute;
+				top: 5px;
+				right: 5px;
+				cursor: pointer;
+			}
+			#alert p{
+				width: 290px;
+				height: 290px;
+				margin: 70px auto;
+				font-family: "楷体";
+				font-size: 16px;
+				line-height: 25px;
+				font-weight: bold;
+				text-align: center;
+			}
+			
+		</style>
+	</head>
+
+	<body>
+		<div class="book preserve">
+
+			<div class="outpage page5 preserve">
+				<div class="page"></div>
+			</div>
+			<div class="outpage page4 preserve">
+				<div class="page">
+					<div>
+						<strong>江城子</strong><br />
+						<p class="content">
+							老夫聊发少年狂，治肾亏，不含糖。<br />
+							锦帽貂裘，千骑用康王。<br />
+							为报倾城随太守，三百年，九芝堂。<br />
+							酒酣胸胆尚开张，西瓜霜，喜之郎。<br />
+							持节云中，三金葡萄糖。<br />
+							学外语，新东方。挖掘机，到蓝翔。<br />
+						</p>
+					</div>
+				</div>
+			</div>
+			<div class="outpage page3 preserve">
+				<div class="page">
+					<div>
+						<strong>卜算子</strong><br />
+						<p class="content">
+							从前有座山，山上有座庙。<br />
+							庙里有个老和尚，长得真是俏。<br />
+							俏也不争春，只把春来报。<br />
+							待到山花烂漫时，他在丛中笑。
+						</p>
+					</div>
+				</div>
+			</div>
+			<div class="outpage page2 preserve">
+				<div class="page">
+					<p>先帝创业未半，<br />&#x3000;&#x3000;而花光预算……</p>
+				</div>
+			</div>
+			<div class="outpage page1 preserve">
+				<div class="page">
+					<p>
+						书本翻页-最终版
+					</p>
+				</div>
+			</div>
+		</div>
+		<div id="alert">
+			<h2><span class="close">&times;</span></h2>
+			<p></p>
+		</div>
+		<script type="text/javascript">
+			$(function() {
+				// 定义布尔变量，判断点击的次数
+				var isClick = true;
+				// oDe 延迟执行的值  oDeg 翻转角度基数
+				var oDe, oDeg;
+				
+				$('.book').click(function() {
+					if(isClick) {
+						// 为除了类名为page5的每一个div.outpage标签绑定动画
+						$('.outpage').not('.page5').each(function() {
+							
+							// delay() 延迟执行函数
+							$(this).stop().delay(oDe).animate({
+								zIndex: 1
+							}, {
+								step: function(now) {
+									// console.log(now);//0~1
+									
+									// 判断当前索引值，来确定oDe和oDeg的值
+									switch($(this).index()) {
+										case 1:
+											oDe = 900,
+												oDeg = -70
+											break;
+										case 2:
+											oDe = 600,
+												oDeg = -100
+											break;
+										case 3:
+											oDe = 300,
+												oDeg = -130
+											break;
+										default:
+											oDe = 0,
+												oDeg = -170
+											break;
+									}
+									$(this).css('transform', 'rotateY(' + now * oDeg + 'deg)');
+									// console.log('index=' + $(this).index() + ' ,oDeg=' + oDeg + ' ,oDe=' + oDe)
+								},
+								duration: 4000
+							});
+
+						});
+						
+					} else {
+						$('.outpage').not('.page5').each(function() {
+							$(this).stop().delay(oDe).animate({
+								zIndex: 1
+							}, {
+								step: function(now) {
+									switch($(this).index()) {
+										case 1:
+											oDe = 0,
+												oDeg = -70
+											break;
+										case 2:
+											oDe = 300,
+												oDeg = -100
+											break;
+										case 3:
+											oDe = 600,
+												oDeg = -130
+											break;
+										default:
+											oDe = 900,
+												oDeg = -170
+											break;
+									};
+									$(this).css('transform', 'rotateY(' + (oDeg + now * (-oDeg)) + 'deg)');
+								},
+								duration: 4000
+							});
+						});
+					};
+					isClick = !isClick;
+				});
+								
+				$('.outpage').not('.page5').not('.page1').find('.page').click(function (ev) {
+					// 判断书是否处于打开状态，如果是，阻止事件冒泡，
+					// 即打开状态再点击无法关闭
+					if (!isClick) {
+						ev.stopPropagation();
+					}
+					$('#alert').show('slow').find('p').html($(this).html());
+					// 点击X关闭弹出框
+					$('#alert .close').click(function () {
+						$('#alert').hide('slow');						
+					});
+				});
+			});
+		</script>
+	</body>
+</html>
